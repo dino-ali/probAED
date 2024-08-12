@@ -28,7 +28,8 @@ matri3
 
 #tarea :busca la inversa producto y potencia de una matriz en r y hacer ejemplos de 3x3
 #como definir funciones en r, y hacer una funcion que sume los 10 primeros numeros
-#como hacr integrales en r
+#como hacer integrales en r
+#hacer la funcion normal
 
 mm<-matri3
 mmm<-mm*matri3
