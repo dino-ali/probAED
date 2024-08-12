@@ -37,3 +37,10 @@ mmm
 
 a1<-power(2)
 a1
+
+#escoge la fila
+a2<-Libro1$edad
+a2
+
+medias<-mean(a2)
+medias
