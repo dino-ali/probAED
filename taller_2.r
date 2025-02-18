@@ -33,3 +33,4 @@ pn.L = mvn(data=hemotology, univariateTest = "Lillie",desc = TRUE); pn.L
 #normalidad multivariada (debe pasar ambas pruebas: asimetría y curtosis):
 pn.m = mvn (data = hemotology, mvnTest = "mardia"); pn.m
 pn.m$multivariateNormality
+ 
