@@ -7,6 +7,7 @@ dim(Songs)
 lapply(Songs, class) #para saber de que tipo es cada variable
 summary(Songs)
 
+# ✨UNIVARIADO✨_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
 #HISTOGRAMAS________________________________________________________________________________________________________________________________________-
 par(mfrow=c(2,3))  # Divide la ventana en 2x3 para ver varios histogramas juntos
 
@@ -33,6 +34,13 @@ hist(Songs$`Shazam Counts`, main="Distribución de Búsquedas en Shazam",
 #¿Cómo se distribuye el puntaje de popularidad en Spotify?
 hist(Songs$`Spotify Popularity`, main="Distribución de Popularidad en Spotify",
      xlab="Popularidad en Spotify", ylab="Frecuencia", col="gold", breaks=30)
+
+# Cuantas canciones se lanzaron por año
+Songs$Release_Year = format(Songs$`Release Date`, "%Y")  # Extraer año
+hist(as.numeric(Songs$Release_Year), breaks=10, col="purple",
+     main="Cantidad de Canciones Lanzadas por Año",
+     xlab="Año", ylab="Cantidad de Canciones", border="white")
+
 
 par(mfrow=c(1,1))  # Restablece la vista a 1 gráfico
 
@@ -92,3 +100,39 @@ boxplot(Songs$`Spotify Streams` ~ Songs$`Explicit Track`,
         col=c("lightblue", "salmon"))
 
 
+# Crear un diagrama de cajas y bigotes para la distribución de streams en varias plataformas (SIN LOGARITMO)
+boxplot(Songs$`Spotify Streams`, Songs$`YouTube Views`, Songs$`TikTok Views`, Songs$`Soundcloud Streams`,
+        names=c("Spotify", "YouTube", "TikTok", "SoundCloud"),  # Etiquetas para cada caja
+        col=c("lightblue", "lightcoral", "lightgreen", "plum"),  # Colores para cada plataforma
+        main="Distribución de Streams por Plataforma",  # Título del gráfico
+        ylab="Número de Streams",  # Etiqueta del eje Y
+        notch=TRUE)  # Incluir muescas para comparar medianas
+
+# Crear un diagrama de cajas y bigotes para la distribución de streams en varias plataformas
+boxplot(log10(Songs$`Spotify Streams`), log10(Songs$`YouTube Views`), log10(Songs$`TikTok Views`), log10(Songs$`Soundcloud Streams`),
+        names=c("Spotify", "YouTube", "TikTok", "SoundCloud"),
+        col=c("lightblue", "lightcoral", "lightgreen", "plum"),
+        main="Distribución de Streams por Plataforma (Escala Log)",
+        ylab="Log(Streams)",
+        notch=TRUE)
+
+# Crear un diagrama de cajas y bigotes para la distribución de búsquedas en Shazam
+boxplot(Songs$`Shazam Counts`,
+        col="purple",  # Color del gráfico
+        main="Distribución de Búsquedas en Shazam",  # Título del gráfico
+        ylab="Cantidad de Búsquedas",  # Etiqueta del eje Y
+        notch=TRUE)  # Incluir muescas para comparar medianas
+
+#graficos aparte xd____________________________
+# Ordenar datos por fecha
+Songs  Songs[order(Songs$`Release Date`), ] 
+
+plot(Songs$`Release Date`, Songs$`Spotify Streams`, type="l", col="blue", lwd=2,
+     main="Evolución de Streams en el Tiempo",
+     xlab="Fecha de Lanzamiento", ylab="Streams")
+
+points(Songs$`Release Date`, Songs$`Spotify Streams`, col="red", pch=16)  # Agregar puntos
+
+
+
+# ✨BIVARIADO✨_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
