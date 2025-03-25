@@ -2,6 +2,7 @@
 library(tidyverse)
 library(dplyr)
 library(ggplot2)
+library(knitr)
 library(readr)
 Songs <- read_csv("macc/2025-1/a n á l i s i s  e s t a d í s t i c o  d e  d a t o s/Most Streamed Spotify Songs 2024.csv", col_types = cols(`Release Date` = col_date(format = "%m/%d/%Y"), ISRC = col_skip(), `TIDAL Popularity` = col_skip()))
 View(Songs)
@@ -144,32 +145,17 @@ plot(Songs$`Release Date`, Songs$`Spotify Streams`, type="l", col="paleturquoise
 points(Songs$`Release Date`, Songs$`Spotify Streams`, col="lightcoral", pch=16)  # Agregar puntos
 
 # ✨BIVARIADO✨_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+#Tablas de distribución de frecuencias cruzadas (doble entrada)___________________________________________________________________________
 # Relación entre "Spotify Streams" y "Explicit"
 Songs$Explicit <- as.factor(Songs$`Explicit Track`)  # Convertir a factor
-
 table(Songs$Explicit) # Tabla de Frecuencia
-
 # Tabla Cruzada de Streams según si son Explícitas o no
 tapply(Songs$`Spotify Streams`, Songs$Explicit, summary)
 
-# Gráfico Comparativo (Boxplot)
-boxplot(Songs$`Spotify Streams` ~ Songs$Explicit, col=c("lightblue", "pink"),
-        main="Distribución de Streams según Explicit",
-        xlab="¿Es Explícita?", ylab="Spotify Streams")
-
-
 # Relación entre "Spotify Streams" y "Release Date"  
 Songs$`Release Year` <- format(Songs$`Release Date`, "%Y")  # Extraer el año de lanzamiento
-
 table(Songs$`Release Year`) # Tabla de Frecuencia de Canciones por Año
 
-# Gráfico de Dispersión
-plot(as.numeric(Songs$`Release Year`), Songs$`Spotify Streams`,
-     main="Relación entre Release Year y Spotify Streams",
-     xlab="Release Year", ylab="Spotify Streams", col="lightsteelblue", pch=16)
-
-#_________________________________________--
-#  Tabla de doble entrada:
 # Crear categorías basadas en la cantidad de likes en TikTok
 LikesTT = Songs %>%
   mutate(categoria_tiktok = case_when(
@@ -179,6 +165,23 @@ LikesTT = Songs %>%
   ))
 
 explicit_TT = table(LikesTT$Explicit, LikesTT$categoria_tiktok); explicit_TT
+
+#Graficos Bivariados______________________________________________________________________________________________________________________
+# Gráfico Comparativo (Boxplot)
+boxplot(Songs$`Spotify Streams` ~ Songs$Explicit, col=c("lightblue", "pink"),
+        main="Distribución de Streams según Explicit",
+        xlab="¿Es Explícita?", ylab="Spotify Streams")
+
+
+
+# Gráfico de Dispersión
+plot(as.numeric(Songs$`Release Year`), Songs$`Spotify Streams`,
+     main="Relación entre Release Year y Spotify Streams",
+     xlab="Release Year", ylab="Spotify Streams", col="lightsteelblue", pch=16)
+
+#_________________________________________--
+
+# Crear categorías basadas en la cantidad de likes en TikTok
 
 ggplot(LikesTT, aes(x = as.factor(Explicit), fill = categoria_tiktok)) +
   geom_bar(position = "dodge") +
@@ -234,9 +237,28 @@ summary_table <- data.frame(
            Mode(Songs$`Soundcloud Streams`))
 )
 
-library(knitr)
 kable(summary_table, caption = "Medidas de tendencia central por variable")
 
+#Medidad de vairabildad
+# Convertir columnas a numéricas eliminando comas o símbolos
+cols_num <- c("Spotify Streams", "YouTube Views", "TikTok Likes", "Shazam Counts", "Soundcloud Streams")
+
+Songs <- Songs %>%
+  mutate(across(all_of(cols_num), ~as.numeric(gsub(",", "", .))))
+
+# Crear función para calcular todo de una vez
+analisis_var <- function(x) {
+  media <- mean(x, na.rm = TRUE)
+  varianza <- var(x, na.rm = TRUE)
+  desv_std <- sd(x, na.rm = TRUE)
+  coef_var <- (desv_std / media) * 100
+  return(c(Varianza = varianza, DesvStd = desv_std, CV = coef_var))
+}
+
+# Aplicar a todas las variables
+resultados <- sapply(Songs[ , cols_num], analisis_var)
+resultados <- round(resultados, 2)
+resultados
 
 # Cuartiles
 quartiles <- data.frame(
@@ -259,4 +281,3 @@ quartiles <- data.frame(
 )
 
 kable(quartiles, caption = "Cuartiles de cada variable")
-
