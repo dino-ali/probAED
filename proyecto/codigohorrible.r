@@ -1,7 +1,6 @@
 #Proyecto AED
 library(tidyverse)
 library(dplyr)
-detach("package:ggplot2", unload=TRUE)  # Desactiva ggplot2
 library(ggplot2)
 library(readr)
 Songs <- read_csv("macc/2025-1/a n á l i s i s  e s t a d í s t i c o  d e  d a t o s/Most Streamed Spotify Songs 2024.csv", col_types = cols(`Release Date` = col_date(format = "%m/%d/%Y"), ISRC = col_skip(), `TIDAL Popularity` = col_skip()))
@@ -120,8 +119,15 @@ boxplot(log10(Songs$`Spotify Streams`), log10(Songs$`YouTube Views`), log10(Song
         ylab="Log(Streams)",
         notch=TRUE)
 
-# Crear un diagrama de cajas y bigotes para la distribución de búsquedas en Shazam
+
+# Crear un diagrama de cajas y bigotes para la distribución de búsquedas en Shazam (SIN LOGARITMO)
 boxplot(Songs$`Shazam Counts`,
+        col="purple",  # Color del gráfico
+        main="Distribución de Búsquedas en Shazam",  # Título del gráfico
+        ylab="Cantidad de Búsquedas",  # Etiqueta del eje Y
+        notch=TRUE)  # Incluir muescas para comparar medianas
+# Crear un diagrama de cajas y bigotes para la distribución de búsquedas en Shazam
+boxplot(log10(Songs$`Shazam Counts`),
         col="purple",  # Color del gráfico
         main="Distribución de Búsquedas en Shazam",  # Título del gráfico
         ylab="Cantidad de Búsquedas",  # Etiqueta del eje Y
@@ -162,7 +168,7 @@ plot(as.numeric(Songs$`Release Year`), Songs$`Spotify Streams`,
      main="Relación entre Release Year y Spotify Streams",
      xlab="Release Year", ylab="Spotify Streams", col="lightsteelblue", pch=16)
 
-#__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+#_________________________________________--
 #  Tabla de doble entrada:
 # Crear categorías basadas en la cantidad de likes en TikTok
 LikesTT = Songs %>%
@@ -191,3 +197,66 @@ ggplot(Songs, aes(x = `YouTube Views`, y = `Spotify Streams`)) +
        y = "Streams en Spotify") +
   scale_x_log10() + scale_y_log10() +  # Escala logarítmica para mejorar visualización
   theme_minimal()
+
+#Streams vs. fecha de lanzamiento
+ggplot(Songs, aes(x = `Release Date`, y = `Spotify Streams`)) +
+  geom_point(alpha = 0.3, color = "forestgreen") +
+  labs(title = "Relación entre fecha de lanzamiento y streams en Spotify",
+       x = "Fecha de lanzamiento", y = "Streams Spotify") +
+  scale_y_log10() +
+  theme_minimal()
+
+# Análisis Descriptivo y Exploratorio de las Variables:_________________________________________________________________________________________________________________________________________________________________________________________________________
+#Medidas de Tendencia Central
+#R  no tiene moda, entonces la creamos
+Mode = function(x) {
+  ux = unique(na.omit(x))  # Eliminar valores NA
+  freq = tabulate(match(x, ux))  # Contar frecuencias
+  ux[which.max(freq)]  # Devolver el más frecuente
+}
+# Creamos la tabla con medias, medianas y modas
+summary_table <- data.frame(
+  Variable = c("Spotify Streams", "YouTube Views", "TikTok Likes", "Shazam Counts", "Soundcloud Streams"),
+  Media = c(mean(Songs$`Spotify Streams`, na.rm = TRUE),
+            mean(Songs$`YouTube Views`, na.rm = TRUE),
+            mean(Songs$`TikTok Likes`, na.rm = TRUE),
+            mean(Songs$`Shazam Counts`, na.rm = TRUE),
+            mean(Songs$`Soundcloud Streams`, na.rm = TRUE)),
+  Mediana = c(median(Songs$`Spotify Streams`, na.rm = TRUE),
+              median(Songs$`YouTube Views`, na.rm = TRUE),
+              median(Songs$`TikTok Likes`, na.rm = TRUE),
+              median(Songs$`Shazam Counts`, na.rm = TRUE),
+              median(Songs$`Soundcloud Streams`, na.rm = TRUE)),
+  Moda = c(Mode(Songs$`Spotify Streams`),
+           Mode(Songs$`YouTube Views`),
+           Mode(Songs$`TikTok Likes`),
+           Mode(Songs$`Shazam Counts`),
+           Mode(Songs$`Soundcloud Streams`))
+)
+
+library(knitr)
+kable(summary_table, caption = "Medidas de tendencia central por variable")
+
+
+# Cuartiles
+quartiles <- data.frame(
+  Variable = c("Spotify Streams", "YouTube Views", "TikTok Likes", "Shazam Counts", "Soundcloud Streams"),
+  Q1 = c(quantile(Songs$`Spotify Streams`, 0.25, na.rm = TRUE),
+         quantile(Songs$`YouTube Views`, 0.25, na.rm = TRUE),
+         quantile(Songs$`TikTok Likes`, 0.25, na.rm = TRUE),
+         quantile(Songs$`Shazam Counts`, 0.25, na.rm = TRUE),
+         quantile(Songs$`Soundcloud Streams`, 0.25, na.rm = TRUE)),
+  Q2 = c(quantile(Songs$`Spotify Streams`, 0.50, na.rm = TRUE),  # Mediana
+         quantile(Songs$`YouTube Views`, 0.50, na.rm = TRUE),
+         quantile(Songs$`TikTok Likes`, 0.50, na.rm = TRUE),
+         quantile(Songs$`Shazam Counts`, 0.50, na.rm = TRUE),
+         quantile(Songs$`Soundcloud Streams`, 0.50, na.rm = TRUE)),
+  Q3 = c(quantile(Songs$`Spotify Streams`, 0.75, na.rm = TRUE),
+         quantile(Songs$`YouTube Views`, 0.75, na.rm = TRUE),
+         quantile(Songs$`TikTok Likes`, 0.75, na.rm = TRUE),
+         quantile(Songs$`Shazam Counts`, 0.75, na.rm = TRUE),
+         quantile(Songs$`Soundcloud Streams`, 0.75, na.rm = TRUE))
+)
+
+kable(quartiles, caption = "Cuartiles de cada variable")
+
