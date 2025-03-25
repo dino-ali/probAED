@@ -1,4 +1,8 @@
 #Proyecto AED
+library(tidyverse)
+library(dplyr)
+detach("package:ggplot2", unload=TRUE)  # Desactiva ggplot2
+library(ggplot2)
 library(readr)
 Songs <- read_csv("macc/2025-1/a n á l i s i s  e s t a d í s t i c o  d e  d a t o s/Most Streamed Spotify Songs 2024.csv", col_types = cols(`Release Date` = col_date(format = "%m/%d/%Y"), ISRC = col_skip(), `TIDAL Popularity` = col_skip()))
 View(Songs)
@@ -97,13 +101,13 @@ boxplot(Songs$`Spotify Streams` ~ Songs$`Explicit Track`,
         main="Distribución de Streams según Explicit Lyrics",
         xlab="Explícita (Sí/No)", 
         ylab="Número de Streams",
-        col=c("lightblue", "salmon"))
+        col=c("seagreen", "mediumvioletred"))
 
 
 # Crear un diagrama de cajas y bigotes para la distribución de streams en varias plataformas (SIN LOGARITMO)
 boxplot(Songs$`Spotify Streams`, Songs$`YouTube Views`, Songs$`TikTok Views`, Songs$`Soundcloud Streams`,
         names=c("Spotify", "YouTube", "TikTok", "SoundCloud"),  # Etiquetas para cada caja
-        col=c("lightblue", "lightcoral", "lightgreen", "plum"),  # Colores para cada plataforma
+        col=c("darkorchid", "hotpink", "plum", "lightskyblue"),  # Colores para cada plataforma
         main="Distribución de Streams por Plataforma",  # Título del gráfico
         ylab="Número de Streams",  # Etiqueta del eje Y
         notch=TRUE)  # Incluir muescas para comparar medianas
@@ -111,7 +115,7 @@ boxplot(Songs$`Spotify Streams`, Songs$`YouTube Views`, Songs$`TikTok Views`, So
 # Crear un diagrama de cajas y bigotes para la distribución de streams en varias plataformas
 boxplot(log10(Songs$`Spotify Streams`), log10(Songs$`YouTube Views`), log10(Songs$`TikTok Views`), log10(Songs$`Soundcloud Streams`),
         names=c("Spotify", "YouTube", "TikTok", "SoundCloud"),
-        col=c("lightblue", "lightcoral", "lightgreen", "plum"),
+        col=c("darkorchid", "hotpink", "plum", "lightskyblue"),
         main="Distribución de Streams por Plataforma (Escala Log)",
         ylab="Log(Streams)",
         notch=TRUE)
@@ -127,12 +131,63 @@ boxplot(Songs$`Shazam Counts`,
 # Ordenar datos por fecha
 Songs  Songs[order(Songs$`Release Date`), ] 
 
-plot(Songs$`Release Date`, Songs$`Spotify Streams`, type="l", col="blue", lwd=2,
+plot(Songs$`Release Date`, Songs$`Spotify Streams`, type="l", col="paleturquoise", lwd=2,
      main="Evolución de Streams en el Tiempo",
      xlab="Fecha de Lanzamiento", ylab="Streams")
 
-points(Songs$`Release Date`, Songs$`Spotify Streams`, col="red", pch=16)  # Agregar puntos
-
-
+points(Songs$`Release Date`, Songs$`Spotify Streams`, col="lightcoral", pch=16)  # Agregar puntos
 
 # ✨BIVARIADO✨_____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+# Relación entre "Spotify Streams" y "Explicit"
+Songs$Explicit <- as.factor(Songs$`Explicit Track`)  # Convertir a factor
+
+table(Songs$Explicit) # Tabla de Frecuencia
+
+# Tabla Cruzada de Streams según si son Explícitas o no
+tapply(Songs$`Spotify Streams`, Songs$Explicit, summary)
+
+# Gráfico Comparativo (Boxplot)
+boxplot(Songs$`Spotify Streams` ~ Songs$Explicit, col=c("lightblue", "pink"),
+        main="Distribución de Streams según Explicit",
+        xlab="¿Es Explícita?", ylab="Spotify Streams")
+
+
+# Relación entre "Spotify Streams" y "Release Date"  
+Songs$`Release Year` <- format(Songs$`Release Date`, "%Y")  # Extraer el año de lanzamiento
+
+table(Songs$`Release Year`) # Tabla de Frecuencia de Canciones por Año
+
+# Gráfico de Dispersión
+plot(as.numeric(Songs$`Release Year`), Songs$`Spotify Streams`,
+     main="Relación entre Release Year y Spotify Streams",
+     xlab="Release Year", ylab="Spotify Streams", col="lightsteelblue", pch=16)
+
+#__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+#  Tabla de doble entrada:
+# Crear categorías basadas en la cantidad de likes en TikTok
+LikesTT = Songs %>%
+  mutate(categoria_tiktok = case_when(
+    `TikTok Likes` <= 1000 ~ "Bajo",
+    `TikTok Likes` > 1000 & `TikTok Likes` <= 10000 ~ "Medio",
+    `TikTok Likes` > 10000 ~ "Alto"
+  ))
+
+explicit_TT = table(LikesTT$Explicit, LikesTT$categoria_tiktok); explicit_TT
+
+ggplot(LikesTT, aes(x = as.factor(Explicit), fill = categoria_tiktok)) +
+  geom_bar(position = "dodge") +
+  labs(title = "Relación entre contenido explícito y popularidad en TikTok",
+       x = "Explícita (0=No, 1=Sí)", 
+       y = "Frecuencia", 
+       fill = "Popularidad en TikTok") +
+  scale_fill_manual(values = c("Bajo" = "thistle", "Medio" = "paleturquoise", "Alto" = "darkcyan", "NA" = "slateblue")) +  
+  theme_minimal()
+
+
+ggplot(Songs, aes(x = `YouTube Views`, y = `Spotify Streams`)) +
+  geom_point(alpha = 0.4, color = "slateblue") +
+  labs(title = "Relación entre streams de YouTube y Spotify",
+       x = "Streams en YouTube", 
+       y = "Streams en Spotify") +
+  scale_x_log10() + scale_y_log10() +  # Escala logarítmica para mejorar visualización
+  theme_minimal()
