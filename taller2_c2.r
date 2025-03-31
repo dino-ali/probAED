@@ -58,8 +58,10 @@ ANOVA1=anova(modelo1); ANOVA1
 
 # ---------------------------------------------------------------------------------------------------------------------------------------
 # Construya un MANOVA unidireccional de los datos del cráneo egipcio. Use un nivel de significancia de 0.05.
-skull = as.matrix(craneo[, -ncol(craneo)]); skull
-craneo$Year <- as.factor(craneo$Year)
-head(craneo)
+datos=as.matrix(craneo[,-c(4)])
+class(datos)
+
+ajuste=manova(datos~`Year`,data=craneo)
 
 ajuste = manova(skull$Year, data = craneo)
+summary(ajuste, test="Wilks")
